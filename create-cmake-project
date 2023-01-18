@@ -1,0 +1,25 @@
+#!/bin/bash
+CURRENT_DIRECTORY=`pwd`
+PROJECT_NAME=$1
+PROJECT_DIRECTORY=$CURRENT_DIRECTORY/$PROJECT_NAME
+TEMPLATE_DIRECTORY=~/bin/Templates/CMake
+VCPKG_PATH=./dependencies/vcpkg
+
+if [ $# -ne 1 ]; then
+	echo Need project name
+	exit 1
+fi
+mkdir -p $PROJECT_DIRECTORY/src $PROJECT_DIRECTORY/include $PROJECT_DIRECTORY/docs $PROJECT_DIRECTORY/dependencies
+echo -e "initialize-project:" >> $PROJECT_DIRECTORY/Makefile
+echo -e "\tgit clone https://github.com/microsoft/vcpkg $VCPKG_PATH" >> $PROJECT_DIRECTORY/Makefile
+echo -e "\t$VCPKG_PATH/bootstrap-vcpkg.sh" >> $PROJECT_DIRECTORY/Makefile
+echo -e "\ninstall-package:" >> $PROJECT_DIRECTORY/Makefile
+echo -e "\t$VCPKG_PATH/vcpkg install \$(package)" >> $PROJECT_DIRECTORY/Makefile
+cat $TEMPLATE_DIRECTORY/gitignore > $PROJECT_DIRECTORY/.gitignore
+sed "s/<PROJECT_NAME>/$PROJECT_NAME/g" $TEMPLATE_DIRECTORY/CMakeLists.txt > $PROJECT_DIRECTORY/CMakeLists.txt
+sed -i "s@<VCPKG_PATH>@$VCPKG_PATH@g" $PROJECT_DIRECTORY/CMakeLists.txt
+cat $TEMPLATE_DIRECTORY/HelloWorld.cpp > $PROJECT_DIRECTORY/src/main.cpp
+cat $TEMPLATE_DIRECTORY/configuration.hpp.in > $PROJECT_DIRECTORY/include/configuration.hpp.in
+sed "s/<PROJECT_NAME>/$PROJECT_NAME/g" $TEMPLATE_DIRECTORY/README.md > $PROJECT_DIRECTORY/README.md
+touch $PROJECT_DIRECTORY/docs/index.md $PROJECT_DIRECTORY/docs/Notes.md
+git init $PROJECT_DIRECTORY
